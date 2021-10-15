@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>NeuroIL Image_generator</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <!-- Bootstrap 3.3.7 -->
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
+  <!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+  <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
+  <!-- Morris chart -->
+  <link rel="stylesheet" href="bower_components/morris.js/morris.css">
+  <!-- jvectormap -->
+  <link rel="stylesheet" href="bower_components/jvectormap/jquery-jvectormap.css">
+  <!-- Date Picker -->
+  <link rel="stylesheet" href="bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+  <!-- Daterange picker -->
+  <link rel="stylesheet" href="bower_components/bootstrap-daterangepicker/daterangepicker.css">
+  <!-- bootstrap wysihtml5 - text editor -->
+  <link rel="stylesheet" href="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css">
+
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap.min.css">
+
+</head>
+<body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+  <div id="learnWindow" style="">
+    <div style="
+      background: rgb(152 152 152 / 50%);
+      width: 100%;
+      height: 100%;
+      z-index: 99;
+      position: fixed;
+    "></div>
+    <div class="col-lg-6" style="top: 10%; left: 30%; width: 40%; z-index: 999;">
+      <div class="box box-success">
+        <div class="box-header with-border">
+          <h3 class="box-title">Генерация изображений</h3>
+        </div>
+        <div class="box-body">
+          <form role="form">
+            <div class="form-group row">
+
+            </div>
+            
+            <div class="form-group row">
+              <div class="col-xs-3" style="width: 50%;">
+                <div class="form-group">
+                  <label>Параметры</label>
+
+                  <div>seed</div>
+                  <div class="form-group row">
+                    <div class="col-xs-3" style="width: 50%;">
+                      <textarea class="form-control" rows="1" placeholder="1 - 1000" id="seed" style="height: 34px; resize: none;">42</textarea>
+                    </div>
+                  </div>
+
+                  <button class="btn btn-primary btn-block" id="start_generating">Сгенерировать изображение</button>
+
+                  <button class="btn btn-primary btn-block" id="start_random_generating">Сгенерировать случайное изображение</button>
+    
+                </div>
+              </div>
+
+              <div class="col-xs-3" style="width: 50%;">
+                <div class="form-group">
+                  <label>Результат</label>
+                  <img id="imgResult" src="#" alt="Полученное изображение" height="512" style="width: 100%; height: auto;"/>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+<script type="text/javascript">
+
+
+function readURL(input, im_type) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+      if (im_type == 'content') {
+        $('#imgContent').attr('src', e.target.result);
+      }
+      if (im_type == 'style') {
+        $('#imgStyle').attr('src', e.target.result);
+      }
+    }
+
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+
+
+$('#start_generating').click(start_generating);
+$('#start_random_generating').click(start_random_generating);
+
+
+async function start_generating () {
+  $('#start_generating')[0].disabled="disabled";
+  $('#start_random_generating')[0].disabled="disabled";
+
+  var fd = new FormData();
+  fd.append('seed', $("#seed").val());
+
+  await $.ajax({
+    type: "POST",
+    url: document.location.href + "api/transfer_style",
+    data: fd,
+    enctype: 'multipart/form-data',
+    contentType: false,
+    processData: false,
+    complete: function(data, status){
+      console.log(data);
+      $('#imgResult')[0].src = 'data:image/jpg;base64,' + data.responseText;
+      $('#start_generating')[0].disabled='';
+      $('#start_random_generating')[0].disabled='';
+    }
+  });
+
+};
+
+async function start_random_generating () {
+  $('#start_generating')[0].disabled="disabled";
+  $('#start_random_generating')[0].disabled="disabled";
+
+  $("#seed").val(Math.floor(Math.random() * 2e9))
+
+  var fd = new FormData();
+  fd.append('seed', $("#seed").val());
+
+  await $.ajax({
+    type: "POST",
+    url: document.location.href + "api/transfer_style",
+    data: fd,
+    enctype: 'multipart/form-data',
+    contentType: false,
+    processData: false,
+    complete: function(data, status){
+      console.log(data);
+      $('#imgResult')[0].src = 'data:image/jpg;base64,' + data.responseText;
+      $('#start_generating')[0].disabled='';
+      $('#start_random_generating')[0].disabled='';
+    }
+  });
+
+};
+
+
+async function getResponseFromApi (type, method, data){
+  var returnData;
+
+  await $.ajax({
+    type: type,
+    url: document.location.href + "api/" + method,
+    data: fd,
+enctype: 'multipart/form-data',
+    contentType: false,
+processData: false,
+    complete: function(data, status){
+      console.log(data);
+      returnData = data;
+    }
+  });
+  return returnData;
+}
+
+</script>
+</body>
+</html>

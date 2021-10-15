@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+    text_sim_nginx:
+        image: nginx:alpine
+        ports:
+            - "14310:5080"
+
+        volumes:
+            - ./front/www:/var/www
+            - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+
+        links: 
+            - gen_image_api
+
+    gen_image_api:
+
+        build: ./backend/api
+
+        ports:
+            - "14309:5080"
